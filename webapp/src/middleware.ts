@@ -1,6 +1,9 @@
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export function middleware(request: NextRequest) {
-    // app should redirect to /dashboard by default
-    return
+export async function middleware(request: NextRequest) {
+    const host = request.headers.get('host');
+    if (!request.nextUrl.pathname || request.nextUrl.pathname === '/') {
+        return NextResponse.redirect(`http://${host}/dashboard`);
+    }
+    return NextResponse.next();
 }

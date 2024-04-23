@@ -6,7 +6,7 @@ from api.schema import FundGraphResponse, ChainId, FundGraphEdge, ChainAddress
 from api.utils import try_parse_obj_as
 
 route = APIRouter(
-    prefix="/graph",
+    prefix="/api/v1/graph",
 )
 
 @route.get("/{chain}/{address}", response_model=FundGraphResponse)
@@ -23,18 +23,15 @@ def get_address_graph(
         dest_address = item["dest"]["address"]
         if source_address == address or dest_address == address:
             graph_data.append(item)
+    edges = try_parse_obj_as(list[FundGraphEdge], graph_data)
+    nodes = extract_nodes(graph_data)
+    return FundGraphResponse(nodes=nodes, edges=edges)
 
-    nodes = []
-    edges = []
+def extract_nodes(graph_data):
+    nodes = set()
     for item in graph_data:
         source_address = item["source"]["address"]
         dest_address = item["dest"]["address"]
-
-        if source_address not in nodes:
-            nodes.append(source_address)
-        if dest_address not in nodes:
-            nodes.append(dest_address)
-
-        edges.append(FundGraphEdge(source=source_address, target=dest_address))
-
-    return FundGraphResponse(nodes=nodes, edges=edges)
+        nodes.add(source_address)
+        nodes.add(dest_address)
+    return list(nodes)
